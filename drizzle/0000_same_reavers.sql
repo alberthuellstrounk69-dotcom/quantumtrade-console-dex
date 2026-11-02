@@ -1,0 +1,63 @@
+CREATE TABLE IF NOT EXISTS `dex_quotes` (
+	`id` varchar(36) NOT NULL,
+	`userId` int NOT NULL,
+	`quoteId` varchar(64) NOT NULL,
+	`provider` varchar(32) NOT NULL,
+	`chainId` int NOT NULL,
+	`takerAddress` varchar(42) NOT NULL,
+	`sellToken` varchar(42) NOT NULL,
+	`buyToken` varchar(42) NOT NULL,
+	`sellAmount` varchar(80) NOT NULL,
+	`quotedBuyAmount` varchar(80) NOT NULL,
+	`minimumBuyAmount` varchar(80) NOT NULL,
+	`slippageBps` int NOT NULL,
+	`priceImpactBps` int,
+	`routeData` text NOT NULL,
+	`expiresAt` timestamp NOT NULL,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+		CONSTRAINT `dex_quotes_id` PRIMARY KEY(`id`),
+		CONSTRAINT `dex_quotes_quoteId_unique` UNIQUE(`quoteId`),
+		KEY `dex_quotes_user_created_idx` (`userId`,`createdAt`)
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `dex_swaps` (
+	`id` varchar(36) NOT NULL,
+	`userId` int NOT NULL,
+	`quoteId` varchar(64) NOT NULL,
+	`provider` varchar(32) NOT NULL,
+	`chainId` int NOT NULL,
+	`walletAddress` varchar(42) NOT NULL,
+	`sellToken` varchar(42) NOT NULL,
+	`buyToken` varchar(42) NOT NULL,
+	`sellAmount` varchar(80) NOT NULL,
+	`quotedBuyAmount` varchar(80) NOT NULL,
+	`actualBuyAmount` varchar(80),
+	`minimumBuyAmount` varchar(80) NOT NULL,
+	`slippageBps` int NOT NULL,
+	`priceImpactBps` int,
+	`approvalTxHash` varchar(66),
+	`swapTxHash` varchar(66),
+	`status` enum('quoted','awaiting_approval','approval_submitted','awaiting_swap','submitted','confirmed','failed','expired') NOT NULL DEFAULT 'quoted',
+	`failureReason` text,
+	`submittedAt` timestamp,
+	`confirmedAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+		CONSTRAINT `dex_swaps_id` PRIMARY KEY(`id`),
+		CONSTRAINT `dex_swaps_quoteId_unique` UNIQUE(`quoteId`),
+		KEY `dex_swaps_user_created_idx` (`userId`,`createdAt`)
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `users` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`openId` varchar(64) NOT NULL,
+	`name` text,
+	`email` varchar(320),
+	`loginMethod` varchar(64),
+	`role` enum('user','admin') NOT NULL DEFAULT 'user',
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	`lastSignedIn` timestamp NOT NULL DEFAULT (now()),
+	CONSTRAINT `users_id` PRIMARY KEY(`id`),
+	CONSTRAINT `users_openId_unique` UNIQUE(`openId`)
+);
